@@ -1,7 +1,10 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:hm_shop/viewmodels/home.dart';
 
 class Hmslider extends StatefulWidget {
-  Hmslider({Key? key}) : super(key: key);
+  final List<BannerItem> bannerList;
+  Hmslider({Key? key, required this.bannerList}) : super(key: key);
 
   @override
   _HmsliderState createState() => _HmsliderState();
@@ -10,11 +13,19 @@ class Hmslider extends StatefulWidget {
 class _HmsliderState extends State<Hmslider> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-       height: 300,
-       decoration: BoxDecoration(color: Colors.blue,),
-       child: Text("轮播图",style: TextStyle(color: Colors.white,fontSize: 20),),
-       alignment: Alignment.center,
+    return CarouselSlider(
+      items: widget.bannerList.map((i) => Container(
+        height: 300,
+        alignment: Alignment.center,
+        child: Image.network(i.imgUrl, fit: BoxFit.cover, width: double.infinity),
+      )).toList(),
+      options: CarouselOptions(
+        height: 300,
+        autoPlay: true,
+        aspectRatio: 16/9,
+        autoPlayInterval: Duration(seconds: 2),
+        viewportFraction: 1,
+      ),
     );
   }
 }
