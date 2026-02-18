@@ -29,6 +29,7 @@ class _HomeViewState extends State<HomeView> {
     _getInVogueList();
     _getOneStopList();
     _getRecommendList();
+    _registerEvent();
   }
   void _getBannerList() async{
     final list = await getBannerListAPI();
@@ -60,12 +61,30 @@ class _HomeViewState extends State<HomeView> {
       _oneStopResult = result;
     });
   }//获取一站式推荐列表
+  int _page = 1;
+  bool _isLoading = false;
+  bool _isHasMore = true;
   void _getRecommendList() async {
-    final list = await getRecommendListAPI({"limit": 10});
+    if(_isLoading || !_isHasMore) return;
+    int requestLimit = _page * 8;
+    _isLoading = true;
+    final list = await getRecommendListAPI({"limit": requestLimit});
+    _isLoading = false;
+    if(list.length < requestLimit){
+      _isHasMore = false;
+    }
     setState(() {
-      _recommendList = list;
+      _recommendList.addAll(list);
     });
+    _page++;
   }//获取商品详情列表
+   void _registerEvent(){
+      _controller.addListener(() {
+        if(_controller.position.pixels >= _controller.position.maxScrollExtent-50){
+          _getRecommendList();
+        }//判断是否到底部
+      });
+    }
   List<Widget> _getScrollChildren(){
     return [
       SliverToBoxAdapter(
@@ -98,8 +117,11 @@ class _HomeViewState extends State<HomeView> {
         HmMoreList(recommendList: _recommendList,),
     ];
   }
+  final _controller = ScrollController();
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(slivers: _getScrollChildren(),);
+    return CustomScrollView(
+      controller: _controller,
+      slivers: _getScrollChildren(),);
   }
 }
