@@ -12,4 +12,5 @@ class HttpConstants{
   static const String INVOGUE_LIST = "/hot/inVogue";
   static const String ONESTOP_LIST = "/hot/oneStop";//建议列表
   static const String RECOMMEND_LIST = "/home/recommend";
+  static const String LOGIN = "/login";//登录
 }

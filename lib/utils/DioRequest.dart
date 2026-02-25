@@ -22,22 +22,37 @@ class DioRequest{
         handler.reject(DioException(requestOptions: response.requestOptions));
       },
       onError: (error,handler){
-        return handler.reject(error);
+        handler.reject(DioException(requestOptions: error.requestOptions,
+          message: error.response?.data["message"] ?? " "));
       }
     ));
   }
 
   Future<dynamic> get(String url,{Map<String,dynamic>? queryParameters})async{
-      try{
-        Response response = await _dio.get(url,queryParameters: queryParameters);
-        if(response.data["code"]!=GlobalConstants.SUCCESS_CODE){
-          return DioException(requestOptions: response.requestOptions);
-        }
-        return response.data["result"];
-      }on DioException catch(e){
-        return e;
-      }
+    return _handleResponse(_dio.get(url,queryParameters: queryParameters));
     }
+  Future<dynamic> post(String url,{Map<String,dynamic>? data}) async {
+    return _handleResponse(_dio.post(url,data: data));
+  }
+  Future<dynamic> _handleResponse(Future<Response<dynamic>> task)async{
+    try{
+      Response<dynamic> res =await task;
+      final data = res.data as Map<String,dynamic>;
+      print("Response data: $data");
+      print("Response code: ${data['code']}");
+      print("Response msg: ${data['msg']}");
+      print("Response result: ${data['result']}");
+      if(data["code"]==GlobalConstants.SUCCESS_CODE || data["code"]==int.tryParse(GlobalConstants.SUCCESS_CODE)){
+        return data["result"];
+      }
+      throw DioException(requestOptions: res.requestOptions,
+        message: data["msg"] ?? "加载数据失败",
+      );
+    }catch(e){
+      print("Error in _handleResponse: $e");
+      rethrow;
+    }
+  }
 }
 
 final dioRequest = DioRequest();//dio请求单例
