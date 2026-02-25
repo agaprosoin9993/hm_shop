@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:hm_shop/constants/index.dart';
+import 'package:hm_shop/stores/TokenManager.dart';
 
 class DioRequest{
   final _dio = Dio();
@@ -13,6 +14,11 @@ class DioRequest{
   void _addInterceptor(){
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (request,handler){
+        //注入token request header Authorization = "Bearer token"
+        if(tokenManager.getToken().isNotEmpty){
+          request.headers={
+          "Authorization": "Bearer ${tokenManager.getToken()}"};
+        }
         return handler.next(request);
       },
       onResponse: (response,handler){
@@ -49,7 +55,6 @@ class DioRequest{
         message: data["msg"] ?? "加载数据失败",
       );
     }catch(e){
-      print("Error in _handleResponse: $e");
       rethrow;
     }
   }

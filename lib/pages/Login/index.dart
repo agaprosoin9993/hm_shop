@@ -1,7 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:hm_shop/api/user.dart';
 import 'package:hm_shop/constants/index.dart';
+import 'package:hm_shop/stores/TokenManager.dart';
+import 'package:hm_shop/stores/UserController.dart';
+import 'package:hm_shop/utils/LoadingDialog.dart';
 import 'package:hm_shop/utils/ToastUtils.dart';
 
 class LoginPage extends StatefulWidget {
@@ -14,6 +18,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   TextEditingController _phoneController = TextEditingController();
   TextEditingController _codeController = TextEditingController();
+  final UserController _userController = Get.find();
   // 用户账号Widget
   Widget _buildPhoneTextField() {
     return TextFormField(
@@ -68,13 +73,19 @@ class _LoginPageState extends State<LoginPage> {
   }
   void login() async {
     try {
+      LoadingDialog.show(context, message: "登录中...");
       final res = await loginAPI({
         "account": _phoneController.text,
         "password": _codeController.text,
       });
+      // 登录成功后，更新用户信息
+      _userController.updateUserInfo(res);
+      tokenManager.setToken(res.token);
+      LoadingDialog.hide(context);
       ToastUtils.showTost(context, "登录成功");
       Navigator.pop(context);
     } on DioException catch(e) {
+      LoadingDialog.hide(context);
       ToastUtils.showTost(context, (e as DioException).message ?? "登录失败，请稍后重试");
     }
   }
